@@ -14,6 +14,9 @@ import net.coderodde.zerosum.ai.EvaluatorFunction;
 public final class ConnectFourStateEvaluatorFunction
         implements EvaluatorFunction<ConnectFourState> {
 
+    private static final double NEGATIVE_WIN_VALUE = -1e6;
+    private static final double POSITIVE_WIN_VALUE = 1e6;
+    
     /**
      * The weight matrix. Maps each position to its weight. We need this in 
      * order to 
@@ -49,8 +52,8 @@ public final class ConnectFourStateEvaluatorFunction
     @Override
     public double evaluate(ConnectFourState state) {
         // 'redPatternCounts[i]' gives the number of patterns of length 'i':
-        int[] redPatternCounts = new int[state.getWinningLength() + 1];
-        int[] whitePatternCounts = new int[redPatternCounts.length];
+        int[] minnimizingPatternCounts = new int[state.getWinningLength() + 1];
+        int[] maximizingPatternCounts = new int[minnimizingPatternCounts.length];
         
         // Do not consider patterns of length one!
         for (int targetLength = 2; 
@@ -64,7 +67,7 @@ public final class ConnectFourStateEvaluatorFunction
                 break;
             }
             
-            redPatternCounts[targetLength] = count;
+            minnimizingPatternCounts[targetLength] = count;
         }
         
         for (int targetLength = 2;
@@ -78,11 +81,11 @@ public final class ConnectFourStateEvaluatorFunction
                 break;
             }
             
-            whitePatternCounts[targetLength] = count;
+            maximizingPatternCounts[targetLength] = count;
         }
         
-        double score = computeBaseScore(redPatternCounts, 
-                                              whitePatternCounts);
+        double score = computeBaseScore(minnimizingPatternCounts, 
+                                        maximizingPatternCounts);
         
         return score + getWeights(weightMatrix, state);
     }
@@ -95,7 +98,9 @@ public final class ConnectFourStateEvaluatorFunction
      */
     private static final int findRedPatternCount(ConnectFourState state,
                                                  int targetLength) {
-        return findPatternCount(state, targetLength, PlayerColor.MINIMIZING_PLAYER);
+        return findPatternCount(state, 
+                                targetLength, 
+                                PlayerColor.MINIMIZING_PLAYER);
     }
     
     /**
@@ -106,7 +111,9 @@ public final class ConnectFourStateEvaluatorFunction
      */
     private static final int findWhitePatternCount(ConnectFourState state,
                                                    int targetLength) {
-        return findPatternCount(state, targetLength, PlayerColor.MAXIMIZING_PLAYER);
+        return findPatternCount(state,
+                                targetLength, 
+                                PlayerColor.MAXIMIZING_PLAYER);
     }
     
     /**
@@ -314,32 +321,31 @@ public final class ConnectFourStateEvaluatorFunction
      * Computes the base scorer that relies on number of patterns. For example,
      * {@code redPatternCounts[i]} will denote the number of patterns of length 
      * [@code i}.
-     * @param redPatternCounts the pattern count map for red patterns.
-     * @param whitePatternCounts the pattern count map for white patterns.
+     * @param minimizingPatternCounts the pattern count map for red patterns.
+     * @param maximizingPatternCounts the pattern count map for white patterns.
      * @return the base estimate.
      */
     private static final double computeBaseScore(
-            int[] redPatternCounts,
-            int[] whitePatternCounts) {
-        final int winningLength = redPatternCounts.length - 1;
+            int[] minimizingPatternCounts,
+            int[] maximizingPatternCounts) {
+        final int winningLength = minimizingPatternCounts.length - 1;
+        
         double value = 0.0;
         
-        for (int length = 2; length < redPatternCounts.length; length++) {
-            final int redCount = redPatternCounts[length];
-            value -= redCount * (1.0 / (winningLength + 1 - length));
+        if (minimizingPatternCounts[winningLength] != 0) {
+            value = NEGATIVE_WIN_VALUE;
+        }
+        
+        if (maximizingPatternCounts[winningLength] != 0) {
+            value = POSITIVE_WIN_VALUE;
+        }
+        
+        for (int length = 2; length < minimizingPatternCounts.length; length++) {
+            int minimizingCount = minimizingPatternCounts[length];
+            value -= minimizingCount * Math.pow(1.5, length);
             
-            if (Double.isInfinite(value)) {
-                // Red (minimizing) player wins:
-                return value;
-            }
-            
-            final int whiteCount = whitePatternCounts[length];
-            value += whiteCount * (1.0 / (winningLength + 1 - length));
-            
-            if (Double.isInfinite(value)) {
-                // White (maximizing) player wins:
-                return value;
-            }
+            int maximizingCount = maximizingPatternCounts[length];
+            value += maximizingCount * Math.pow(1.5, length);
         }
         
         return value;

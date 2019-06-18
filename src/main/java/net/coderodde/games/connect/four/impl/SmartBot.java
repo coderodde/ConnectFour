@@ -35,7 +35,7 @@ public final class SmartBot implements Bot {
                                PlayerColor.MAXIMIZING_PLAYER, 
                                myPlayerColor);
         long endTime = System.currentTimeMillis();
-        System.out.println("SmartBot in " + (endTime - startTime) + " ms.");
+        System.out.println("SmartBot in " + (endTime - startTime) + " ms:");
         return nextState;
     }
 

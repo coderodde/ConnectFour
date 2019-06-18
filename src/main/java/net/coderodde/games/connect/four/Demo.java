@@ -19,9 +19,9 @@ import net.coderodde.zerosum.ai.impl.AlphaBetaPruningGameEngine;
  */
 public class Demo {
 
-    public static final double MAX_WEIGHT_MATRIX_ENTRY = 5.0;
+    public static final double MAX_WEIGHT_MATRIX_ENTRY = 10.0;
     
-    private static final int DEFAULT_SEARCH_DEPTH = 6;
+    private static final int DEFAULT_SEARCH_DEPTH = 8;
     
     public static void main(String[] args) {
         Random random = new Random();
@@ -43,7 +43,7 @@ public class Demo {
         Bot bot3 = new Human(PlayerColor.MINIMIZING_PLAYER, "X >>> ", 
                              new Scanner(System.in));
         
-        playMatch(bot1, bot2);
+        playMatch(bot3, bot2);
     }
     
     /**
