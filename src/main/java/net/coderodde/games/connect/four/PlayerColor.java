@@ -8,8 +8,15 @@ package net.coderodde.games.connect.four;
  */
 public enum PlayerColor {
     
-    WHITE_PLAYER('O'),
-    RED_PLAYER('X');
+    /**
+     * Maximizing player.
+     */
+    MAXIMIZING_PLAYER('X'),
+    
+    /**
+     * Minimizing player.
+     */
+    MINIMIZING_PLAYER('O');
     
     private final char playerColorChar;
     

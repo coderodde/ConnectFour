@@ -26,14 +26,17 @@ public final class ConnectFourStateEvaluatorFunction
     private final int winningLength;
     
     /**
-     * Constructs the default heuristic function.
-     * @param weightMatrix the weight matrix.
+     * Constructs the default heuristic function for Connect Four game states.
+     * 
+     * @param width the game board width.
+     * @param height the game board height.
+     * @param maxWeight the maximum weight in the weight matrix.
      * @param winningPatternLength the winning pattern length.
      */
     public ConnectFourStateEvaluatorFunction(final int width,
-                                    final int height,
-                                    final double maxWeight,
-                                    final int winningPatternLength) {
+                                             final int height,
+                                             final double maxWeight,
+                                             final int winningPatternLength) {
         this.weightMatrix = getWeightMatrix(width, height, maxWeight);
         this.winningLength = winningPatternLength;
     }
@@ -81,10 +84,6 @@ public final class ConnectFourStateEvaluatorFunction
         double score = computeBaseScore(redPatternCounts, 
                                               whitePatternCounts);
         
-        if (Double.isInfinite(score)) {
-            return score;
-        }
-        
         return score + getWeights(weightMatrix, state);
     }
     
@@ -96,7 +95,7 @@ public final class ConnectFourStateEvaluatorFunction
      */
     private static final int findRedPatternCount(ConnectFourState state,
                                                  int targetLength) {
-        return findPatternCount(state, targetLength, PlayerColor.RED_PLAYER);
+        return findPatternCount(state, targetLength, PlayerColor.MINIMIZING_PLAYER);
     }
     
     /**
@@ -107,7 +106,7 @@ public final class ConnectFourStateEvaluatorFunction
      */
     private static final int findWhitePatternCount(ConnectFourState state,
                                                    int targetLength) {
-        return findPatternCount(state, targetLength, PlayerColor.WHITE_PLAYER);
+        return findPatternCount(state, targetLength, PlayerColor.MAXIMIZING_PLAYER);
     }
     
     /**
@@ -139,7 +138,6 @@ public final class ConnectFourStateEvaluatorFunction
         count += findDescendingDiagonalPatternCount(state, 
                                                     targetLength,
                                                     playerColor);
-        
         return count;
     }
     
@@ -293,15 +291,15 @@ public final class ConnectFourStateEvaluatorFunction
         double score = 0.0;
         
         outer:
-        for (int y = state.getHeight() - 1; y >= 0; y--) {
-            for (int x = 0; x < state.getWidth(); x++) {
+        for (int x = 0; x < state.getWidth(); x++) {
+            for (int y = state.getHeight() - 1; y >= 0; y--) {
                 PlayerColor playerColor = state.readCell(x, y);
                 
                 if (playerColor == null) {
                     continue outer;
                 }
                 
-                if (playerColor == PlayerColor.RED_PLAYER) {
+                if (playerColor == PlayerColor.MINIMIZING_PLAYER) {
                     score -= weightMatrix[y][x];
                 } else {
                     score += weightMatrix[y][x];
@@ -328,7 +326,7 @@ public final class ConnectFourStateEvaluatorFunction
         
         for (int length = 2; length < redPatternCounts.length; length++) {
             final int redCount = redPatternCounts[length];
-            value -= redCount * (1.0 / (winningLength - length));
+            value -= redCount * (1.0 / (winningLength + 1 - length));
             
             if (Double.isInfinite(value)) {
                 // Red (minimizing) player wins:
@@ -336,7 +334,7 @@ public final class ConnectFourStateEvaluatorFunction
             }
             
             final int whiteCount = whitePatternCounts[length];
-            value += whiteCount * (1.0 / (winningLength - length));
+            value += whiteCount * (1.0 / (winningLength + 1 - length));
             
             if (Double.isInfinite(value)) {
                 // White (maximizing) player wins:

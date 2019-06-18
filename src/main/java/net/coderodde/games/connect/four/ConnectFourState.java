@@ -1,27 +1,32 @@
 package net.coderodde.games.connect.four;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import net.coderodde.zerosum.ai.State;
+
 /**
  * This class implements the Connect Four game state.
  * 
  * @author Rodion "rodde" Efremov
  * @version 1.6 (May 24, 2019)
  */
-public class ConnectFourState {
+public class ConnectFourState implements State<ConnectFourState> {
     
     /**
      * The default number of columns.
      */
-    private static final int DEFAULT_WIDTH = 7;
+    public static final int DEFAULT_WIDTH = 7;
     
     /**
      * The default number of rows.
      */
-    private static final int DEFAULT_HEIGHT = 6;
+    public static final int DEFAULT_HEIGHT = 6;
     
     /**
      * The default length of the winning line.
      */
-    private static final int DEFAULT_WINNING_LENGTH = 4;
+    public static final int DEFAULT_WINNING_LENGTH = 4;
      
     /**
      * Caches the lower bar for printing the state to the console/command line.
@@ -39,29 +44,50 @@ public class ConnectFourState {
     private final int winningLength;
     
     /**
+     * The list of children.
+     */
+    private List<ConnectFourState> children;
+    
+    /**
+     * The player owning this state.
+     */
+    private final PlayerColor playerColor;
+    
+    /**
      * Constructs an empty game board with given dimensions.
      * @param width the number of columns in the constructed state.
      * @param height the number of rows in the constructed state.
+     * @param winningLength the length of the winning patterns.
+     * @param ownerPlayer the owner of this state.
      */
-    public ConnectFourState(int width, int height, int winningLength) {
+    public ConnectFourState(int width,
+                            int height, 
+                            int winningLength,
+                            PlayerColor ownerPlayer) {
         this.state = new PlayerColor[checkHeight(height)]
                                     [checkWidth(width)];
         this.winningLength = checkWinningLength(winningLength);
+        this.playerColor = Objects.requireNonNull(ownerPlayer, "The owner is null.");
         
-        if (winningLength > Math.min(width, height)) {
+        if (winningLength > Math.max(width, height)) {
             throw new IllegalArgumentException(
                     "The dimensions of the board are not sufficiently large " +
                     "in order to accommodate the winning pattern.");
         }
         
         this.lowerBar = createLowerBar(width);
+        
     }
     
     /**
      * Constructs an empty game board with default dimensions.
+     * @param playerColor the player owning this state.
      */
-    public ConnectFourState() {
-        this(DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_WINNING_LENGTH);
+    public ConnectFourState(PlayerColor playerColor) {
+        this(DEFAULT_WIDTH, 
+             DEFAULT_HEIGHT, 
+             DEFAULT_WINNING_LENGTH,
+             playerColor);
     }
     
     /**
@@ -69,10 +95,34 @@ public class ConnectFourState {
      * 
      * @param state the state of the newly constructed game board.
      */
-    private ConnectFourState(PlayerColor[][] state, int winningLength) {
+    private ConnectFourState(PlayerColor[][] state, 
+                             int winningLength,
+                             PlayerColor playerColor) {
         this.state = state;
         this.winningLength = winningLength;
+        this.playerColor = playerColor;
         this.lowerBar = createLowerBar(state[0].length);
+    }
+
+    @Override
+    public List<ConnectFourState> children() {
+        if (children == null) {
+            children = new ArrayList<>(getWidth());
+            
+            for (int x = 0; x < getWidth(); x++) {
+                if (!columnIsFull(x)) {
+                    ConnectFourState child = move(x, playerColor);
+                    children.add(child);
+                }
+            }
+        }
+        
+        return children;
+    }
+
+    @Override
+    public boolean isTerminal() {
+        return checkVictory() != null;
     }
     
     /**
@@ -85,7 +135,7 @@ public class ConnectFourState {
     }
     
     /**
-     * Makes a move and returns the board representing that move.
+     * Makes a move and returns the board representing the next game state.
      * 
      * @param x the target column.
      * @param player the player to make the move.
@@ -102,7 +152,12 @@ public class ConnectFourState {
         for (int y = cloneState.length - 1; y >= 0; y--) {
             if (cloneState[y][x] == null) {
                 cloneState[y][x] = player;
-                return new ConnectFourState(cloneState, winningLength);
+                return new ConnectFourState(
+                        cloneState, 
+                        winningLength,
+                        playerColor == PlayerColor.MAXIMIZING_PLAYER ?
+                                PlayerColor.MINIMIZING_PLAYER :
+                                PlayerColor.MAXIMIZING_PLAYER);
             }
         }
         
@@ -117,12 +172,12 @@ public class ConnectFourState {
      * @return the player or {@code null} if no players have won yet.
      */
     public PlayerColor checkVictory() {
-        if (checkVictory(PlayerColor.WHITE_PLAYER)) {
-            return PlayerColor.WHITE_PLAYER;
+        if (checkVictory(PlayerColor.MAXIMIZING_PLAYER)) {
+            return PlayerColor.MAXIMIZING_PLAYER;
         }
         
-        if (checkVictory(PlayerColor.RED_PLAYER)) {
-            return PlayerColor.RED_PLAYER;
+        if (checkVictory(PlayerColor.MINIMIZING_PLAYER)) {
+            return PlayerColor.MINIMIZING_PLAYER;
         }
         
         return null;
@@ -293,7 +348,7 @@ public class ConnectFourState {
     
     private PlayerColor[][] cloneState() {
         PlayerColor[][] cloneState = new PlayerColor[state.length]
-                                          [state[0].length];
+                                                    [state[0].length];
         
         for (int y = 0; y < state.length; y++) {
             for (int x = 0; x < state[y].length; x++) {
@@ -346,9 +401,9 @@ public class ConnectFourState {
         }
         
         switch (player) {
-            case RED_PLAYER:
+            case MINIMIZING_PLAYER:
                 return "X";
-            case WHITE_PLAYER:
+            case MAXIMIZING_PLAYER:
                 return "O";
             default:
                 throw new IllegalStateException("Should not ever get here.");

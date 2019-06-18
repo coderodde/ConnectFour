@@ -4,7 +4,7 @@ import java.util.Objects;
 import net.coderodde.games.connect.four.Bot;
 import net.coderodde.games.connect.four.ConnectFourState;
 import net.coderodde.games.connect.four.PlayerColor;
-import net.coderodde.games.connect.four.HeuristicFunction;
+import net.coderodde.zerosum.ai.GameEngine;
 
 /**
  * This class implements the smart bot relying on Alpha-beta pruning.
@@ -15,19 +15,28 @@ import net.coderodde.games.connect.four.HeuristicFunction;
 public final class SmartBot implements Bot {
     
     private final PlayerColor myPlayerColor;
-    private final HeuristicFunction evaluator;
+    private final GameEngine<ConnectFourState, PlayerColor> engine;
     
-    public SmartBot(PlayerColor me, HeuristicFunction evaluator) {
+    public SmartBot(PlayerColor me, 
+                    GameEngine<ConnectFourState, PlayerColor> engine) {
         this.myPlayerColor =
                 Objects.requireNonNull(me, "The input player is null.");
         
-        this.evaluator = Objects.requireNonNull(evaluator,
-                                                "The input evaluator is null.");
+        this.engine = Objects.requireNonNull(engine,
+                                             "The input engine is null.");
     }
 
     @Override
     public ConnectFourState computeNextState(ConnectFourState state) {
-        return null;
+        long startTime = System.currentTimeMillis();
+        ConnectFourState nextState = 
+                engine.makePly(state, 
+                               PlayerColor.MINIMIZING_PLAYER, 
+                               PlayerColor.MAXIMIZING_PLAYER, 
+                               myPlayerColor);
+        long endTime = System.currentTimeMillis();
+        System.out.println("SmartBot in " + (endTime - startTime) + " ms.");
+        return nextState;
     }
 
     @Override

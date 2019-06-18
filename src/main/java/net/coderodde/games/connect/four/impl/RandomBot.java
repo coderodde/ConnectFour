@@ -1,3 +1,4 @@
+
 package net.coderodde.games.connect.four.impl;
 
 import java.util.Objects;
