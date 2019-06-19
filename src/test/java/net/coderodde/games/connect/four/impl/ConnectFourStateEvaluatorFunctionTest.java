@@ -16,7 +16,7 @@ import org.junit.Test;
 public class ConnectFourStateEvaluatorFunctionTest {
     
     private final EvaluatorFunction<ConnectFourState> func = 
-            new ConnectFourStateEvaluatorFunction(
+            new BruteForceConnectFourStateEvaluatorFunction(
                     ConnectFourState.DEFAULT_WIDTH,
                     ConnectFourState.DEFAULT_HEIGHT,
                     Demo.MAX_WEIGHT_MATRIX_ENTRY,
@@ -31,18 +31,18 @@ public class ConnectFourStateEvaluatorFunctionTest {
     
     @Test
     public void testWhenOnlyTwoMinimizingCells() {
-        ConnectFourState state = 
-                new ConnectFourState(PlayerColor.MINIMIZING_PLAYER);
-        
-        state = state.move(3, PlayerColor.MINIMIZING_PLAYER);
-        state = state.move(2, PlayerColor.MINIMIZING_PLAYER);
-        state = state.move(2, PlayerColor.MINIMIZING_PLAYER);
-        state = state.move(1, PlayerColor.MINIMIZING_PLAYER);
-        state = state.move(3, PlayerColor.MAXIMIZING_PLAYER);
-        state = state.move(1, PlayerColor.MAXIMIZING_PLAYER);
-        state = state.move(2, PlayerColor.MAXIMIZING_PLAYER);
-        state = state.move(4, PlayerColor.MAXIMIZING_PLAYER);
-        System.out.println(state);
-        System.out.println(func.evaluate(state));
+//        ConnectFourState state = 
+//                new ConnectFourState(PlayerColor.MINIMIZING_PLAYER);
+//        
+//        state = state.move(3, PlayerColor.MINIMIZING_PLAYER);
+//        state = state.move(2, PlayerColor.MINIMIZING_PLAYER);
+//        state = state.move(2, PlayerColor.MINIMIZING_PLAYER);
+//        state = state.move(1, PlayerColor.MINIMIZING_PLAYER);
+//        state = state.move(3, PlayerColor.MAXIMIZING_PLAYER);
+//        state = state.move(1, PlayerColor.MAXIMIZING_PLAYER);
+//        state = state.move(2, PlayerColor.MAXIMIZING_PLAYER);
+//        state = state.move(4, PlayerColor.MAXIMIZING_PLAYER);
+//        System.out.println(state);
+//        System.out.println(func.evaluate(state));
     }
 }

@@ -58,7 +58,7 @@ public final class Human implements Bot {
                     continue loop;
                 }
                 
-                return state.move(columnIndex, myPlayerColor);
+                return state.move(columnIndex);
             } catch (InputMismatchException ex) {
                 throw new IllegalStateException("Unrecognized column number: " +
                                                 ex.getMessage());

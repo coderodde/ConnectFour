@@ -42,7 +42,7 @@ public final class RandomBot implements Bot {
         
         for (int columnCoordinate : columnCoordinates) {
             if (!state.columnIsFull(columnCoordinate)) {
-                return state.move(columnCoordinate, myPlayerColor);
+                return state.move(columnCoordinate);
             }
         }
         

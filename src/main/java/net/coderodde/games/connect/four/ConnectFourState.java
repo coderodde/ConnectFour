@@ -111,7 +111,7 @@ public class ConnectFourState implements State<ConnectFourState> {
             
             for (int x = 0; x < getWidth(); x++) {
                 if (!columnIsFull(x)) {
-                    ConnectFourState child = move(x, playerColor);
+                    ConnectFourState child = move(x);
                     children.add(child);
                 }
             }
@@ -135,29 +135,42 @@ public class ConnectFourState implements State<ConnectFourState> {
     }
     
     /**
+     * Marks a particular board position with the given player color. Used for 
+     * debugging.
+     * 
+     * @param x the {@code x}-coordinate.
+     * @param y the {@code y}-coordinate. 
+     * @param playerColor the player color to mark.
+     */
+    public void write(int x, int y, PlayerColor playerColor) {
+        state[y][x] = playerColor;
+    }
+    
+    /**
      * Makes a move and returns the board representing the next game state.
      * 
      * @param x the target column.
-     * @param player the player to make the move.
      * @return a new board accommodating the new move.
      */
-    public ConnectFourState move(int x, PlayerColor player) {
+    public ConnectFourState move(int x) {
         if (columnIsFull(x)) {
             throw new IllegalStateException(
                     "Trying to put a token to a full column.");
         }
         
         PlayerColor[][] cloneState = cloneState();
+        PlayerColor nextPlayerColor =
+                playerColor == PlayerColor.MAXIMIZING_PLAYER ? 
+                PlayerColor.MINIMIZING_PLAYER : 
+                PlayerColor.MAXIMIZING_PLAYER;
         
         for (int y = cloneState.length - 1; y >= 0; y--) {
             if (cloneState[y][x] == null) {
-                cloneState[y][x] = player;
+                cloneState[y][x] = nextPlayerColor;
                 return new ConnectFourState(
                         cloneState, 
                         winningLength,
-                        playerColor == PlayerColor.MAXIMIZING_PLAYER ?
-                                PlayerColor.MINIMIZING_PLAYER :
-                                PlayerColor.MAXIMIZING_PLAYER);
+                        nextPlayerColor);
             }
         }
         

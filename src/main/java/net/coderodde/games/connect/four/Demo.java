@@ -3,13 +3,15 @@ package net.coderodde.games.connect.four;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
-import net.coderodde.games.connect.four.impl.ConnectFourStateEvaluatorFunction;
+import net.coderodde.games.connect.four.impl.BruteForceConnectFourStateEvaluatorFunction;
 import net.coderodde.games.connect.four.impl.Human;
 import net.coderodde.games.connect.four.impl.RandomBot;
 import net.coderodde.games.connect.four.impl.SmartBot;
+import net.coderodde.games.connect.four.impl.WeightMatrixConnectFourStateEvaluatorFunction;
 import net.coderodde.zerosum.ai.EvaluatorFunction;
 import net.coderodde.zerosum.ai.GameEngine;
 import net.coderodde.zerosum.ai.impl.AlphaBetaPruningGameEngine;
+import net.coderodde.zerosum.ai.impl.MinimaxGameEngine;
 
 /**
  * This class implements the Connect Four game in the command line/console.
@@ -21,29 +23,33 @@ public class Demo {
 
     public static final double MAX_WEIGHT_MATRIX_ENTRY = 10.0;
     
-    private static final int DEFAULT_SEARCH_DEPTH = 8;
+    public static final int DEFAULT_SEARCH_DEPTH = 10;
     
     public static void main(String[] args) {
         Random random = new Random();
         
-        EvaluatorFunction<ConnectFourState> evaluatorFunction = 
-                new ConnectFourStateEvaluatorFunction(
+        EvaluatorFunction<ConnectFourState> evaluatorFunction1 = 
+                new BruteForceConnectFourStateEvaluatorFunction(
                         ConnectFourState.DEFAULT_WIDTH,
                         ConnectFourState.DEFAULT_HEIGHT,
                         MAX_WEIGHT_MATRIX_ENTRY,
                         ConnectFourState.DEFAULT_WINNING_LENGTH);
+
+        EvaluatorFunction<ConnectFourState> evaluatorFunction2 = 
+                new WeightMatrixConnectFourStateEvaluatorFunction();
         
         GameEngine<ConnectFourState, PlayerColor> gameEngine = 
-                new AlphaBetaPruningGameEngine<>(evaluatorFunction, 
+                new AlphaBetaPruningGameEngine<>(evaluatorFunction1, 
                                                  DEFAULT_SEARCH_DEPTH);
         
         Bot bot1 = new RandomBot(PlayerColor.MINIMIZING_PLAYER, random);
         Bot bot2 = new SmartBot(PlayerColor.MAXIMIZING_PLAYER, gameEngine);
         // 'bot3' is connected to cin:
-        Bot bot3 = new Human(PlayerColor.MINIMIZING_PLAYER, "X >>> ", 
+        Bot bot3 = new Human(PlayerColor.MINIMIZING_PLAYER, "O >>> ", 
                              new Scanner(System.in));
+        Bot bot4 = new SmartBot(PlayerColor.MAXIMIZING_PLAYER, gameEngine);
         
-        playMatch(bot3, bot2);
+        playMatch(bot3, bot4);
     }
     
     /**
